@@ -1,10 +1,9 @@
 name: Kur Guncelle Cron
-
 on:
   schedule:
-    - cron: "0 6 * * *"   # 09:00 TR
-    - cron: "0 10 * * *"  # 13:00 TR
+    - cron: "*/5 * * * *"   # 5 dakikada bir (test modu)
   workflow_dispatch:
+
 
 jobs:
   update-kur:
