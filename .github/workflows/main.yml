@@ -2,15 +2,37 @@ name: Kur Guncelle Cron
 
 on:
   schedule:
-    - cron: "*/5 * * * *"   # 5 dakikada bir (UTC)
+    - cron: "0 6 * * *"    # 09:00 TR
+    - cron: "0 10 * * *"   # 13:00 TR
   workflow_dispatch:
 
 jobs:
   update-kur:
     runs-on: ubuntu-latest
+
     steps:
+      - name: Baslangic logu
+        run: |
+          echo "=============================="
+          echo "⏰ CRON BASLADI"
+          echo "Tarih (UTC): $(date)"
+          echo "=============================="
+
+      - name: Render uyandir
+        run: |
+          echo "☀️ Render uyandiriliyor..."
+          curl -s https://kur-guncelle-api.onrender.com || true
+          sleep 40
+
       - name: Kur guncelle
         run: |
-          echo "⏰ CRON CALISTI: $(date)"
+          echo "💸 Kur guncelle istegi atiliyor"
           curl -v -X POST https://kur-guncelle-api.onrender.com/kur-guncelle \
-          -H "x-api-key: ${{ secrets.API_KEY }}"
+            -H "x-api-key: ${{ secrets.API_KEY }}"
+
+      - name: Bitis logu
+        run: |
+          echo "=============================="
+          echo "✅ CRON BITTI"
+          echo "Tarih (UTC): $(date)"
+          echo "=============================="
