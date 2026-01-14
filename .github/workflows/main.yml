@@ -2,7 +2,7 @@ name: Kur Guncelle Cron
 
 on:
   schedule:
-    - cron: "15 13 * * *" # 16:15 TR
+    - cron: "*/5 * * * *"   # 5 dakikada bir (test)
   workflow_dispatch:
 
 jobs:
@@ -10,14 +10,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Render uyanıyor
-        run: |
-          echo "☀️ Render uyandırılıyor..."
-          curl -s https://kur-guncelle-api.onrender.com || true
-          sleep 25
-
       - name: Kur guncelle
         run: |
-          echo "💸 KUR GÜNCELLEME BAŞLADI: $(date)"
+          echo "⏰ CRON CALISTI: $(date)"
           curl -v -X POST https://kur-guncelle-api.onrender.com/kur-guncelle \
-          -H "x-api-key: ${{ secrets.API_KEY }}"
+            -H "x-api-key: ${{ secrets.API_KEY }}"
