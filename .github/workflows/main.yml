@@ -2,7 +2,7 @@ name: Kur Guncelle Cron
 
 on:
   schedule:
-    - cron: "*/5 * * * *"   # 5 dakikada bir (test için)
+    - cron: "15 13 * * *" # 16:15 TR
   workflow_dispatch:
 
 jobs:
