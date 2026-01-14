@@ -10,9 +10,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Kur guncelle
+   - name: Kur guncelle
   run: |
-    echo "⏰ CRON ÇALIŞTI: $(date)"
-    curl -v -X POST https://kur-guncelle-api.onrender.com/kur-guncelle \
+    echo "⏰ CRON CALISTI: $(date)"
+    curl --max-time 90 -X POST https://kur-guncelle-api.onrender.com/kur-guncelle \
       -H "x-api-key: ${{ secrets.API_KEY }}"
-
