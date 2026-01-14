@@ -1,0 +1,17 @@
+name: Kur Guncelle Cron
+
+on:
+  schedule:
+    - cron: "0 6 * * *"   # 09:00 TR
+    - cron: "0 10 * * *"  # 13:00 TR
+  workflow_dispatch:
+
+jobs:
+  update-kur:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Kur guncelle
+        run: |
+          curl -X POST https://kur-guncelle-api.onrender.com/kur-guncelle \
+          -H "x-api-key: ${{ secrets.API_KEY }}"
