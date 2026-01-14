@@ -11,6 +11,8 @@ jobs:
 
     steps:
       - name: Kur guncelle
-        run: |
-          curl -X POST https://kur-guncelle-api.onrender.com/kur-guncelle \
-          -H "x-api-key: ${{ secrets.API_KEY }}"
+  run: |
+    echo "⏰ CRON ÇALIŞTI: $(date)"
+    curl -v -X POST https://kur-guncelle-api.onrender.com/kur-guncelle \
+      -H "x-api-key: ${{ secrets.API_KEY }}"
+
