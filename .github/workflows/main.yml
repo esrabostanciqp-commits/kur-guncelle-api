@@ -2,8 +2,8 @@ name: Kur Guncelle Cron
 
 on:
   schedule:
-    - cron: "0 6 * * *"    # 09:00 TR
-    - cron: "0 10 * * *"   # 13:00 TR
+    - cron: "0 5 * * *"    # 09:00 TR
+    - cron: "0 9 * * *"   # 13:00 TR
   workflow_dispatch:
 
 jobs:
