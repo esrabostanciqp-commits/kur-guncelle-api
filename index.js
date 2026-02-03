@@ -56,13 +56,13 @@ app.post("/kur-guncelle", async (req, res) => {
       }
     );
 
-    // 5️⃣ LOG ADI OLUŞTUR
+    // 5️⃣ Log adı oluştur
     const now = new Date();
     const hour = now.getHours();
     const emoji = hour < 12 ? "🕘" : "🕐";
     const logName = `Güncel Kur ${emoji} ${hour.toString().padStart(2, "0")}:00`;
 
-    // 6️⃣ Bitrix List'e LOG ekle (LIST ID: 204)
+    // 6️⃣ Bitrix List'e LOG EKLE
     await fetch(
       "https://quickpoint.bitrix24.com.tr/rest/1292/ipys562fd67r1935/lists.element.add.json",
       {
@@ -73,12 +73,9 @@ app.post("/kur-guncelle", async (req, res) => {
           IBLOCK_ID: 204,
           FIELDS: {
             NAME: logName,
-            PROPERTY_VALUES: {
-              KUR_TARIHI: now.toISOString(),
-              KUR_INT_: usdTry,
-              euroint: eurTry,
-              DURUM: "Başarılı"
-            }
+            PROPERTY_1154: now.toISOString(), // Kur Tarihi
+            PROPERTY_1156: usdTry,            // USD
+            PROPERTY_1164: eurTry             // EUR
           }
         })
       }
