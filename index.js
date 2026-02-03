@@ -8,19 +8,20 @@ app.get("/", (req, res) => {
   res.json({ message: "API çalışıyor" });
 });
 
-// USD ve EUR kurunu CRM para biriminde güncelle
+// USD ve EUR kurunu CRM para biriminde güncelle (+0,50 TL marjlı)
 app.post("/kur-guncelle", async (req, res) => {
   try {
-    // 1️⃣ Gerçek kur verisini al (base: USD)
+    // 1️⃣ Kur verisini al (base: USD)
     const kurResponse = await fetch(
       "https://v6.exchangerate-api.com/v6/62b4bf0401d377105b1565cf/latest/USD"
     );
     const kurData = await kurResponse.json();
 
-    // 2️⃣ Kurları hesapla
-    const usdTry = kurData.conversion_rates.TRY.toFixed(4);
+    // 2️⃣ Kurları hesapla (+0,50 TL eklenmiş)
+    const usdTry = (kurData.conversion_rates.TRY + 0.5).toFixed(4);
+
     const eurTry = (
-      kurData.conversion_rates.TRY / kurData.conversion_rates.EUR
+      kurData.conversion_rates.TRY / kurData.conversion_rates.EUR + 0.5
     ).toFixed(4);
 
     // 3️⃣ Bitrix CRM USD kurunu güncelle
