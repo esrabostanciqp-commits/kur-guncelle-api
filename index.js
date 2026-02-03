@@ -8,7 +8,6 @@ app.get("/", (req, res) => {
   res.json({ message: "API çalışıyor" });
 });
 
-// USD ve EUR kurunu CRM para biriminde güncelle (+0,50 TL marjlı)
 app.post("/kur-guncelle", async (req, res) => {
   try {
     // 1️⃣ Kur verisini al (base: USD)
@@ -17,14 +16,15 @@ app.post("/kur-guncelle", async (req, res) => {
     );
     const kurData = await kurResponse.json();
 
-    // 2️⃣ Kurları hesapla (+0,50 TL eklenmiş)
-    const usdTry = (kurData.conversion_rates.TRY + 0.5).toFixed(4);
+    const MARJ = 0.5;
 
+    // 2️⃣ Kurları hesapla (+0,50 TL)
+    const usdTry = (kurData.conversion_rates.TRY + MARJ).toFixed(4);
     const eurTry = (
-      kurData.conversion_rates.TRY / kurData.conversion_rates.EUR + 0.5
+      kurData.conversion_rates.TRY / kurData.conversion_rates.EUR + MARJ
     ).toFixed(4);
 
-    // 3️⃣ Bitrix CRM USD kurunu güncelle
+    // 3️⃣ Bitrix CRM USD güncelle
     await fetch(
       "https://quickpoint.bitrix24.com.tr/rest/1292/ipys562fd67r1935/crm.currency.update.json",
       {
@@ -40,7 +40,7 @@ app.post("/kur-guncelle", async (req, res) => {
       }
     );
 
-    // 4️⃣ Bitrix CRM EUR kurunu güncelle
+    // 4️⃣ Bitrix CRM EUR güncelle
     await fetch(
       "https://quickpoint.bitrix24.com.tr/rest/1292/ipys562fd67r1935/crm.currency.update.json",
       {
@@ -56,12 +56,39 @@ app.post("/kur-guncelle", async (req, res) => {
       }
     );
 
+    // 5️⃣ LOG ADI OLUŞTUR
+    const now = new Date();
+    const hour = now.getHours();
+    const emoji = hour < 12 ? "🕘" : "🕐";
+    const logName = `Güncel Kur ${emoji} ${hour.toString().padStart(2, "0")}:00`;
+
+    // 6️⃣ Bitrix List'e LOG ekle (LIST ID: 204)
+    await fetch(
+      "https://quickpoint.bitrix24.com.tr/rest/1292/ipys562fd67r1935/lists.element.add.json",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          IBLOCK_TYPE_ID: "lists",
+          IBLOCK_ID: 204,
+          FIELDS: {
+            NAME: logName,
+            PROPERTY_VALUES: {
+              KUR_TARIHI: now.toISOString(),
+              KUR_INT_: usdTry,
+              euroint: eurTry,
+              DURUM: "Başarılı"
+            }
+          }
+        })
+      }
+    );
+
     res.json({
       success: true,
-      updated: {
-        USD: usdTry,
-        EUR: eurTry
-      }
+      USD: usdTry,
+      EUR: eurTry,
+      log: logName
     });
 
   } catch (err) {
