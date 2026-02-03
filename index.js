@@ -1,4 +1,3 @@
-
 const express = require("express");
 const app = express();
 
@@ -9,19 +8,23 @@ app.get("/", (req, res) => {
   res.json({ message: "API çalışıyor" });
 });
 
-// USD kurunu CRM para biriminde güncelle
+// USD ve EUR kurunu CRM para biriminde güncelle
 app.post("/kur-guncelle", async (req, res) => {
   try {
-    // 1️⃣ Gerçek USD/TRY kuru al
+    // 1️⃣ Gerçek kur verisini al (base: USD)
     const kurResponse = await fetch(
       "https://v6.exchangerate-api.com/v6/62b4bf0401d377105b1565cf/latest/USD"
     );
     const kurData = await kurResponse.json();
 
+    // 2️⃣ Kurları hesapla
     const usdTry = kurData.conversion_rates.TRY.toFixed(4);
+    const eurTry = (
+      kurData.conversion_rates.TRY / kurData.conversion_rates.EUR
+    ).toFixed(4);
 
-    // 2️⃣ Bitrix CRM USD kurunu güncelle
-    const bitrixResponse = await fetch(
+    // 3️⃣ Bitrix CRM USD kurunu güncelle
+    await fetch(
       "https://quickpoint.bitrix24.com.tr/rest/1292/ipys562fd67r1935/crm.currency.update.json",
       {
         method: "POST",
@@ -36,12 +39,28 @@ app.post("/kur-guncelle", async (req, res) => {
       }
     );
 
-    const result = await bitrixResponse.json();
+    // 4️⃣ Bitrix CRM EUR kurunu güncelle
+    await fetch(
+      "https://quickpoint.bitrix24.com.tr/rest/1292/ipys562fd67r1935/crm.currency.update.json",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: "EUR",
+          fields: {
+            AMOUNT: eurTry,
+            AMOUNT_CNT: 1
+          }
+        })
+      }
+    );
 
     res.json({
       success: true,
-      updated_rate: usdTry,
-      bitrix: result
+      updated: {
+        USD: usdTry,
+        EUR: eurTry
+      }
     });
 
   } catch (err) {
