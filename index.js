@@ -10,20 +10,20 @@ const PORT = 3000;
 const BITRIX_WEBHOOK =
   "https://quickpoint.bitrix24.com.tr/rest/1292/25vb2dah83otx54w";
 
-// Smart Process bilgileri
+// Smart Process
 const ENTITY_TYPE_ID = 1102; // Kur Geçmişi
 const CATEGORY_ID = 42;      // Kur Geçmişi pipeline
 
-// Alan kodları
-const FIELD_USD = "UF_CRM_42_1770198932"; // 1$
-const FIELD_EUR = "UF_CRM_42_1770198961"; // 1€
-const FIELD_DATE = "UF_CRM_42_1770198985"; // Kur Tarihi
+// Alan kodları (BİREBİR)
+const FIELD_USD = "UF_CRM_42_1770198932";   // 1$
+const FIELD_EUR = "UF_CRM_42_1770198961";   // 1€
+const FIELD_DATE = "UF_CRM_42_1770198985";  // Kur Tarihi
 
 // =======================
 // YARDIMCI FONKSİYONLAR
 // =======================
 
-// Log başlığı: 09.00 / 13.00
+// Log adı: 09.00 / 13.00
 function getKurTitle() {
   const hour = new Date().toLocaleString("tr-TR", {
     timeZone: "Europe/Istanbul",
@@ -31,15 +31,14 @@ function getKurTitle() {
     hour12: false
   });
 
-  if (Number(hour) < 12) {
-    return "Güncel Kur 09.00";
-  }
-  return "Güncel Kur 13.00";
+  return Number(hour) < 12
+    ? "Güncel Kur 09.00"
+    : "Güncel Kur 13.00";
 }
 
-// Bugünün tarihi (Smart Process tarih alanı için doğru format)
+// Tarih → DD.MM.YYYY (Smart Process tarih alanı için DOĞRU)
 function getTodayDate() {
-  return new Date().toLocaleDateString("en-CA", {
+  return new Date().toLocaleDateString("tr-TR", {
     timeZone: "Europe/Istanbul"
   });
 }
@@ -48,7 +47,7 @@ function getTodayDate() {
 // SMART PROCESS LOG
 // =======================
 async function logToSmartProcess({ usd, eur }) {
-  await fetch(`${BITRIX_WEBHOOK}/crm.item.add.json`, {
+  const response = await fetch(`${BITRIX_WEBHOOK}/crm.item.add.json`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -56,12 +55,19 @@ async function logToSmartProcess({ usd, eur }) {
       categoryId: CATEGORY_ID,
       fields: {
         TITLE: getKurTitle(),
-        [FIELD_USD]: Number(usd),
-        [FIELD_EUR]: Number(eur),
+
+        // ⚠️ SAYI ALANLARI STRING
+        [FIELD_USD]: usd,
+        [FIELD_EUR]: eur,
+
+        // ⚠️ TARİH DD.MM.YYYY
         [FIELD_DATE]: getTodayDate()
       }
     })
   });
+
+  const text = await response.text();
+  console.log("SMART PROCESS RESPONSE:", text);
 }
 
 // =======================
@@ -108,7 +114,7 @@ app.post("/kur-guncelle", async (req, res) => {
       })
     });
 
-    // 5️⃣ Smart Process log
+    // 5️⃣ Smart Process LOG
     await logToSmartProcess({
       usd: usdTry,
       eur: eurTry
