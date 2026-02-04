@@ -6,24 +6,25 @@ app.use(express.json());
 // =======================
 // AYARLAR
 // =======================
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+
 const BITRIX_WEBHOOK =
   "https://quickpoint.bitrix24.com.tr/rest/1292/25vb2dah83otx54w";
 
 // Smart Process
 const ENTITY_TYPE_ID = 1102; // Kur Geçmişi
-const CATEGORY_ID = 42;      // Kur Geçmişi pipeline
+const CATEGORY_ID = 42;     // Kur Geçmişi pipeline
 
-// Alan kodları (BİREBİR)
-const FIELD_USD = "UF_CRM_42_1770198932";   // 1$
-const FIELD_EUR = "UF_CRM_42_1770198961";   // 1€
-const FIELD_DATE = "UF_CRM_42_1770198985";  // Kur Tarihi
+// METİN ALANLARI (YENİ)
+const FIELD_USD_TEXT = "UF_CRM_42_1770216493";   // 1 Dolar (Metin)
+const FIELD_EUR_TEXT = "UF_CRM_42_1770216529";   // 1 Euro (Metin)
+const FIELD_DATE_TEXT = "UF_CRM_42_1770216538";  // Kur Tarihi (Metin)
 
 // =======================
 // YARDIMCI FONKSİYONLAR
 // =======================
 
-// Log adı: 09.00 / 13.00
+// Log başlığı: 09.00 / 13.00
 function getKurTitle() {
   const hour = new Date().toLocaleString("tr-TR", {
     timeZone: "Europe/Istanbul",
@@ -36,8 +37,8 @@ function getKurTitle() {
     : "Güncel Kur 13.00";
 }
 
-// Tarih → DD.MM.YYYY (Smart Process tarih alanı için DOĞRU)
-function getTodayDate() {
+// Tarih (METİN) → DD.MM.YYYY
+function getTodayDateText() {
   return new Date().toLocaleDateString("tr-TR", {
     timeZone: "Europe/Istanbul"
   });
@@ -56,18 +57,16 @@ async function logToSmartProcess({ usd, eur }) {
       fields: {
         TITLE: getKurTitle(),
 
-        // ⚠️ SAYI ALANLARI STRING
-        [FIELD_USD]: usd,
-        [FIELD_EUR]: eur,
-
-        // ⚠️ TARİH DD.MM.YYYY
-        [FIELD_DATE]: getTodayDate()
+        // METİN ALANLARI
+        [FIELD_USD_TEXT]: usd,
+        [FIELD_EUR_TEXT]: eur,
+        [FIELD_DATE_TEXT]: getTodayDateText()
       }
     })
   });
 
   const text = await response.text();
-  console.log("SMART PROCESS RESPONSE:", text);
+  console.log("SMART PROCESS LOG RESPONSE:", text);
 }
 
 // =======================
@@ -87,6 +86,10 @@ app.post("/kur-guncelle", async (req, res) => {
       "https://v6.exchangerate-api.com/v6/62b4bf0401d377105b1565cf/latest/USD"
     );
     const kurData = await kurResponse.json();
+
+    if (kurData.result !== "success") {
+      throw new Error("Kur API başarısız cevap döndü");
+    }
 
     // 2️⃣ Hesapla (+0.50 TL marj)
     const usdTry = (kurData.conversion_rates.TRY + 0.5).toFixed(4);
@@ -114,7 +117,7 @@ app.post("/kur-guncelle", async (req, res) => {
       })
     });
 
-    // 5️⃣ Smart Process LOG
+    // 5️⃣ Smart Process LOG (METİN)
     await logToSmartProcess({
       usd: usdTry,
       eur: eurTry
