@@ -21,7 +21,14 @@ function getKurName() {
     : "Güncel Kur Öğleden Sonra";
 }
 
-// 🔹 LOG ATMA FONKSİYONU (BITRIX LIST)
+// 🔹 BUGÜN TARİHİ (YYYY-MM-DD) → TARİH ALANI İÇİN DOĞRU FORMAT
+function getTodayDate() {
+  return new Date().toLocaleDateString("en-CA", {
+    timeZone: "Europe/Istanbul"
+  });
+}
+
+// 🔹 BITRIX LIST LOG FONKSİYONU
 async function logToBitrix({ usd, eur }) {
   await fetch(
     "https://quickpoint.bitrix24.com.tr/rest/1292/25vb2dah83otx54w/lists.element.add.json",
@@ -31,11 +38,12 @@ async function logToBitrix({ usd, eur }) {
       body: JSON.stringify({
         IBLOCK_TYPE_ID: "lists",
         IBLOCK_ID: 204,
+        ELEMENT_CODE: Date.now().toString(),
         FIELDS: {
-          NAME: getKurName(),
-          PROPERTY_1156: usd, // 1 $ 
-          PROPERTY_1164: eur, // 1 €
-          PROPERTY_1154: new Date().toISOString() // kur tarihi
+          NAME: getKurName(),          // Text
+          PROPERTY_1156: [Number(usd)], // 1 $ → Sayı
+          PROPERTY_1164: [Number(eur)], // 1 € → Sayı
+          PROPERTY_1154: [getTodayDate()] // Kur Tarihi → Tarih
         }
       })
     }
@@ -90,28 +98,6 @@ app.post("/kur-guncelle", async (req, res) => {
       }
     );
 
-    // ✅ LOG AT (CRM GÜNCELLEME SONRASI)
+    // ✅ LOG AT (LIST 204)
     await logToBitrix({
-      usd: usdTry,
-      eur: eurTry
-    });
-
-    res.json({
-      success: true,
-      updated: {
-        USD: usdTry,
-        EUR: eurTry
-      }
-    });
-
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      error: err.message
-    });
-  }
-});
-
-app.listen(3000, () => {
-  console.log("API ayakta: http://localhost:3000");
-});
+      usd: usdTr
