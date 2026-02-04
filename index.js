@@ -26,7 +26,7 @@ app.post("/kur-guncelle", async (req, res) => {
 
     // 3️⃣ Bitrix CRM USD kurunu güncelle
     await fetch(
-      "https://quickpoint.bitrix24.com.tr/rest/1292/ipys562fd67r1935/crm.currency.update.json",
+      "https://quickpoint.bitrix24.com.tr/rest/1292/25vb2dah83otx54w/crm.currency.update.json",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -42,7 +42,7 @@ app.post("/kur-guncelle", async (req, res) => {
 
     // 4️⃣ Bitrix CRM EUR kurunu güncelle
     await fetch(
-      "https://quickpoint.bitrix24.com.tr/rest/1292/ipys562fd67r1935/crm.currency.update.json",
+      "https://quickpoint.bitrix24.com.tr/rest/1292/25vb2dah83otx54w/crm.currency.update.json",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -72,6 +72,8 @@ app.post("/kur-guncelle", async (req, res) => {
   }
 });
 
-app.listen(3000, () => {
-  console.log("API ayakta: http://localhost:3000");
+// ✅ Render uyumlu port
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log("API ayakta. Port:", PORT);
 });
