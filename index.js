@@ -72,8 +72,6 @@ app.post("/kur-guncelle", async (req, res) => {
   }
 });
 
-// ✅ Render uyumlu port
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log("API ayakta. Port:", PORT);
+app.listen(3000, () => {
+  console.log("API ayakta: http://localhost:3000");
 });
