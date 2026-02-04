@@ -8,6 +8,40 @@ app.get("/", (req, res) => {
   res.json({ message: "API çalışıyor" });
 });
 
+// 🔹 SABAH / ÖĞLEDEN SONRA ADI
+function getKurName() {
+  const hour = new Date().toLocaleString("tr-TR", {
+    timeZone: "Europe/Istanbul",
+    hour: "2-digit",
+    hour12: false
+  });
+
+  return Number(hour) < 12
+    ? "Güncel Kur Sabah"
+    : "Güncel Kur Öğleden Sonra";
+}
+
+// 🔹 LOG ATMA FONKSİYONU (BITRIX LIST)
+async function logToBitrix({ usd, eur }) {
+  await fetch(
+    "https://quickpoint.bitrix24.com.tr/rest/1292/25vb2dah83otx54w/lists.element.add.json",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        IBLOCK_TYPE_ID: "lists",
+        IBLOCK_ID: 204,
+        FIELDS: {
+          NAME: getKurName(),
+          PROPERTY_1156: usd, // 1 $ 
+          PROPERTY_1164: eur, // 1 €
+          PROPERTY_1154: new Date().toISOString() // kur tarihi
+        }
+      })
+    }
+  );
+}
+
 // USD ve EUR kurunu CRM para biriminde güncelle (+0,50 TL marjlı)
 app.post("/kur-guncelle", async (req, res) => {
   try {
@@ -55,6 +89,12 @@ app.post("/kur-guncelle", async (req, res) => {
         })
       }
     );
+
+    // ✅ LOG AT (CRM GÜNCELLEME SONRASI)
+    await logToBitrix({
+      usd: usdTry,
+      eur: eurTry
+    });
 
     res.json({
       success: true,
